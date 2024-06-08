@@ -19,3 +19,6 @@ class WorkDayService:
 
     def delete(self, pk: int):
         self.sql_repo.delete(pk)
+
+    def update(self, pk: int, data: dict):
+        self.sql_repo.update(pk, data)
