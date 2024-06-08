@@ -2,7 +2,7 @@ from typing import List
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from datetime import date
+from datetime import datetime
 
 
 class Base(DeclarativeBase):
@@ -12,7 +12,7 @@ class Base(DeclarativeBase):
 class WorkDay(Base):
     __tablename__ = 'workdays'
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[date]
+    date: Mapped[datetime] = mapped_column(unique=True)
     day_of_week: Mapped[str]
     description: Mapped[str]
 
@@ -37,7 +37,7 @@ class RateValue(Base):
     __tablename__ = 'rate_values'
     id: Mapped[int] = mapped_column(primary_key=True)
     value: Mapped[int]
-    start_date: Mapped[date]
-    end_date: Mapped[date] = mapped_column(nullable=True)
+    start_date: Mapped[datetime]
+    end_date: Mapped[datetime] = mapped_column(nullable=True)
     rate_id: Mapped[int] = mapped_column(ForeignKey('rates.id'))
     rate: Mapped['Rate'] = relationship(back_populates='rate_values')
