@@ -1,7 +1,7 @@
 from typing import List, Type, Sequence
 
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import sessionmaker
 
 from src.db.database import db_session
@@ -30,15 +30,19 @@ class SQLAlchemyRepository(AbstractRepository):
             res = session.execute(query).scalars().all()
             return self._model_validate(res)
 
-    def get_all(self, *args, **kwargs) -> List[BaseModel]:
+    def get_all(self, *args, **kwargs) -> Sequence[BaseModel]:
         with self.session() as session:
             query = select(self.model)
             res: Sequence = session.execute(query).scalars().all()
             return res
             # return self._model_validate(res)
 
-    def update(self, *args, **kwargs) -> BaseModel:
-        ...
+    def update(self, pk:int, data):
+
+        with self.session() as session:
+            stmt = update(self.model).filter_by(id=pk).values(**data)
+            session.execute(stmt)
+            session.commit()
 
     def delete(self, pk: int):
         with self.session() as session:
