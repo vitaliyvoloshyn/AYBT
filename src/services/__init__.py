@@ -186,18 +186,24 @@ class IService:
         return dates
 
     def get_wage_per_month(self, month: int, year: int):
-        """"""
+        """Повертає повну суму заробітньої плати за рахрахунковий місяць"""
         res = []
         sum_ = 0
         dates: dict = self.get_work_days_per_month(month, year)
         rates = self.get_all_rate(with_relation=True)
         daily_rate = self.define_daily_rate(rates, month, year)
         month_rate = self.define_month_rate(rates, month, year)
+        single_prim = self.define_single_prim(rates, month, year)
+        single_fine = self.define_single_fine(rates, month, year)
         for rate_ in daily_rate:
             res.append({'name': rate_['name'], 'value': rate_['value'] * dates.get('days_count')})
         res.extend(month_rate)
-        sum_ = sum((i['value'] for i in res))
-        return {'total': sum_,
+        res.extend(single_prim)
+        sum_ = sum(i['value'] for i in res)
+        res.extend(single_fine)
+        sum_fine = sum(i['value'] for i in single_fine)
+        end_sum = sum_ - sum_fine
+        return {'total': end_sum,
                 'rates': res}
 
     def define_daily_rate(self, rates: Sequence[BaseModel], month: int, year: int) -> list:
@@ -214,6 +220,28 @@ class IService:
                         if value.start_date <= date(year, month, 1):
                             res.append({'name': str(rate.name), 'value': value.value})
 
+        return res
+
+    def define_single_fine(self, rates: Sequence[BaseModel], month: int, year: int) -> list:
+        """Визначає розмір разового вирахування для розрахункового місяця"""
+        res = []
+
+        for rate in rates:
+            if rate.rate_type.id == 4:
+                for value in rate.rate_values:
+                    if value.start_date.month == month and value.start_date.year == year:
+                        res.append({'name': str(rate.name), 'value': value.value})
+        return res
+
+    def define_single_prim(self, rates: Sequence[BaseModel], month: int, year: int) -> list:
+        """Визначає розмір разового нарахування для розрахункового місяця"""
+        res = []
+
+        for rate in rates:
+            if rate.rate_type.id == 3:
+                for value in rate.rate_values:
+                    if value.start_date.month == month and value.start_date.year == year:
+                        res.append({'name': str(rate.name), 'value': value.value})
         return res
 
     def define_month_rate(self, rates: Sequence[BaseModel], month: int, year: int) -> list:
