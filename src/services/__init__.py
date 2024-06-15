@@ -192,9 +192,10 @@ class IService:
         dates: dict = self.get_work_days_per_month(month, year)
         rates = self.get_all_rate(with_relation=True)
         daily_rate = self.define_daily_rate(rates, month, year)
+        month_rate = self.define_month_rate(rates, month, year)
         for rate_ in daily_rate:
-            res.append({'name': rate_['name'],
-                        'value': rate_['value'] * dates.get('days_count')})
+            res.append({'name': rate_['name'], 'value': rate_['value'] * dates.get('days_count')})
+        res.extend(month_rate)
         sum_ = sum((i['value'] for i in res))
         return {'total': sum_,
                 'rates': res}
@@ -205,6 +206,21 @@ class IService:
 
         for rate in rates:
             if rate.rate_type.id == 1:
+                for value in rate.rate_values:
+                    if value.end_date:
+                        if value.start_date <= date(year, month, 1) <= value.end_date:
+                            res.append({'name': str(rate.name), 'value': value.value})
+                    else:
+                        if value.start_date <= date(year, month, 1):
+                            res.append({'name': str(rate.name), 'value': value.value})
+
+        return res
+
+    def define_month_rate(self, rates: Sequence[BaseModel], month: int, year: int) -> list:
+        """Визначає розмір місячної ставки"""
+        res = []
+        for rate in rates:
+            if rate.rate_type.id == 2:
                 for value in rate.rate_values:
                     if value.end_date:
                         if value.start_date <= date(year, month, 1) <= value.end_date:
