@@ -20,7 +20,7 @@ class WorkDay(Base):
 class RateType(Base):
     __tablename__ = 'rate_types'
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str]
+    name: Mapped[str] = mapped_column(unique=True)
     rates: Mapped[List['Rate']] = relationship(back_populates='rate_type')
 
 

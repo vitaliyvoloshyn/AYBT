@@ -1,5 +1,5 @@
 from src.services import IService
 
 
-class WorkDayService(IService):
+class RateValue(IService):
     ...

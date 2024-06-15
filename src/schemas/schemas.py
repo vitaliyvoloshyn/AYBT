@@ -1,13 +1,13 @@
-import datetime
+from datetime import date
 from typing import List, Optional
 
 from pydantic import BaseModel
 
 
 class WorkDayAddDTO(BaseModel):
-    date: datetime.date
+    date: date
     description: str
-    day_of_week: str
+    day_of_week: Optional[str] = None
 
 
 class WorkDayDTO(WorkDayAddDTO):
@@ -16,7 +16,7 @@ class WorkDayDTO(WorkDayAddDTO):
 
 class RateAddDTO(BaseModel):
     name: str
-    type: int
+    rate_type_id: int
 
 
 class RateDTO(RateAddDTO):
@@ -24,13 +24,14 @@ class RateDTO(RateAddDTO):
 
 
 class RateRelDTO(RateDTO):
-    ratevalues: List['RateValueDTO']
+    rate_values: List['RateValueDTO']
+    rate_type: 'RateTypeDTO'
 
 
 class RateValueAddDTO(BaseModel):
     value: int
-    start_date: datetime.date
-    end_date: Optional[datetime.date] = None
+    start_date: date
+    end_date: Optional[date] = None
     rate_id: int
 
 
