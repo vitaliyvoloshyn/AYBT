@@ -47,7 +47,7 @@ class IService:
 
     def update_wd(self, pk: int, data: dict):
         with self.session() as session:
-            self.wd_repository.update(session, pk, data)
+            self.wd_repository.update(session, pk, **data)
             session.commit()
             return self.wd_repository.get_obj(session, id=pk)
 
@@ -115,7 +115,7 @@ class IService:
 
     def update_rv(self, pk: int, data: dict):
         with self.session() as session:
-            self.rv_repository.update(session, pk, data)
+            self.rv_repository.update(session, pk, **data)
             session.commit()
             return self.rv_repository.get_obj(session, id=pk)
 
@@ -160,7 +160,7 @@ class IService:
 
     def update_rate(self, pk: int, data: dict):
         with self.session() as session:
-            self.rate_repository.update(session, pk, data)
+            self.rate_repository.update(session, pk, **data)
             session.commit()
             return self.rate_repository.get_obj(session, id=pk)
 
