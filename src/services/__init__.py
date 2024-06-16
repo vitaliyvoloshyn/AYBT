@@ -32,10 +32,6 @@ class IService:
         with self.session() as session:
             return self.wd_repository.get_all(session, **filter_by)
 
-    def get_all_wd_per_month(self, begin: date, end: date):
-        with self.session() as session:
-            return self.wd_repository.get_all_wd_per_month_(session, begin, end)
-
     def get_wd(self, **filter_by) -> List[BaseModel]:
         with self.session() as session:
             return self.wd_repository.get_obj(session, **filter_by)
@@ -197,21 +193,27 @@ class IService:
 
     # ________________________________UTILS____________________________________________________________
 
-    def get_work_days_per_month(self, month: int, year: int) -> dict:
-        """Якщо розрахунковий місяць більше/дорівнює поточному, повертається список дат без сьомого дня тижня (неділі)
-         вказаного місяця, якщо менше поточного - список фактично відпрацьованих днів"""
+    def get_fact_wd_per_month(self, month: int, year: int) -> dict:
+        """Повертає список фактично відпрацьованих днів за вказаний місяць"""
+        dates = {'days_count': 0, 'days': []}
+        begin = date(year, month, 1)
+        end = self._get_end_date_of_month(month, year)
+        with self.session() as session:
+            days = self.wd_repository.get_all_wd_per_month_(session, begin, end)
+        dates['days'] = days
+        dates['days_count'] = len(days)
+        return dates
+
+    def get_plan_wd_per_month(self, month: int, year: int) -> dict:
+        """Повертає список планових робочих днів за вказаний місяць"""
         dates = {'days_count': 0, 'days': []}
         days = []
-        last_period: bool
         start_date = date(year, month, 1)
         end_date = self._get_end_date_of_month(month, year)
-        if not self._get_period(month, year):
-            while start_date.month == month:
-                if start_date.isoweekday() != 7:
-                    days.append((start_date, self._get_weekday(start_date)))
-                start_date += timedelta(days=1)
-        else:
-            days = self.get_all_wd_per_month(start_date, end_date)
+        while start_date <= end_date:
+            if start_date.isoweekday() != 7:
+                days.append((start_date, self._get_weekday(start_date)))
+            start_date += timedelta(days=1)
         dates['days'] = days
         dates['days_count'] = len(days)
         return dates
@@ -220,7 +222,7 @@ class IService:
         """Повертає повну суму заробітньої плати за рахрахунковий місяць"""
         res = []
         sum_ = 0
-        dates: dict = self.get_work_days_per_month(month, year)
+        dates: dict = self.get_plan_wd_per_month(month, year)
         rates = self.get_all_rate(with_relation=True)
         daily_rate = self.define_daily_rate(rates, month, year)
         month_rate = self.define_month_rate(rates, month, year)

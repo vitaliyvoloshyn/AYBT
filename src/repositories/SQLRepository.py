@@ -1,3 +1,4 @@
+from datetime import date
 from typing import List, Type, Sequence, Union
 
 from pydantic import BaseModel
@@ -55,7 +56,7 @@ class WorDayRepository(SQLAlchemyRepository):
     model = WorkDay
     dto = WorkDayDTO
 
-    def get_all_wd_per_month_(self, session: Session, begin, end):
+    def get_all_wd_per_month_(self, session: Session, begin: date, end: date) -> List[BaseModel]:
         query = select(self.model).filter(and_(self.model.date <= end, self.model.date >= begin))
         res = session.execute(query).scalars().all()
         return self.model_validate(res)
