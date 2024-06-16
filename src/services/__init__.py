@@ -171,7 +171,7 @@ class IService:
 
     def add_pmnt(self, dto: BaseModel) -> Union[BaseModel, List[BaseModel]]:
         with self.session() as session:
-            dto.__setattr__('billing_date', date(dto.billing_date.year, dto.billing_date.year, 1))
+            dto.__setattr__('billing_date', date(dto.billing_date.year, dto.billing_date.month, 1))
             model = self.payment_repository.add_obj(session, dto)
             session.commit()
             return self.payment_repository.model_validate(model)
