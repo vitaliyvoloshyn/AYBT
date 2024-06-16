@@ -2,12 +2,11 @@ from datetime import date, timedelta
 from typing import List, Union, Sequence
 
 from pydantic import BaseModel
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
 from src.db.database import db_session
 from src.repositories.SQLRepository import SQLAlchemyRepository, WorDayRepository, RateRepository, RateValueRepository, \
-    RateTypeRepository
+    RateTypeRepository, PaymentRepository
 
 
 class IService:
@@ -15,6 +14,7 @@ class IService:
     rate_repository: SQLAlchemyRepository = RateRepository()
     rv_repository: SQLAlchemyRepository = RateValueRepository()
     rt_repository: SQLAlchemyRepository = RateTypeRepository()
+    payment_repository: SQLAlchemyRepository = PaymentRepository()
 
     def __init__(self, session: sessionmaker = db_session):
         self.session = session
