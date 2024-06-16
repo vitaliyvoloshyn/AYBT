@@ -10,7 +10,7 @@ from src.repositories.SQLRepository import SQLAlchemyRepository, WorDayRepositor
 
 
 class IService:
-    wd_repository: SQLAlchemyRepository = WorDayRepository()
+    wd_repository: WorDayRepository = WorDayRepository()
     rate_repository: SQLAlchemyRepository = RateRepository()
     rv_repository: SQLAlchemyRepository = RateValueRepository()
     rt_repository: SQLAlchemyRepository = RateTypeRepository()
@@ -166,6 +166,34 @@ class IService:
             self.rate_repository.update(session, pk, **data)
             session.commit()
             return self.rate_repository.get_obj(session, id=pk)
+
+    # ______________________________CRUD Payment____________________________________________________________________
+
+    def add_pmnt(self, dto: BaseModel) -> Union[BaseModel, List[BaseModel]]:
+        with self.session() as session:
+            dto.__setattr__('billing_date', date(dto.billing_date.year, dto.billing_date.year, 1))
+            model = self.payment_repository.add_obj(session, dto)
+            session.commit()
+            return self.payment_repository.model_validate(model)
+
+    def get_all_pmnt(self, **filter_by):
+        with self.session() as session:
+            return self.payment_repository.get_all(session, **filter_by)
+
+    def get_pmnt(self, **filter_by) -> List[BaseModel]:
+        with self.session() as session:
+            return self.payment_repository.get_obj(session, **filter_by)
+
+    def delete_pmnt(self, pk: int):
+        with self.session() as session:
+            self.payment_repository.delete(session, pk)
+            session.commit()
+
+    def update_pmnt(self, pk: int, data: dict):
+        with self.session() as session:
+            self.payment_repository.update(session, pk, **data)
+            session.commit()
+            return self.payment_repository.get_obj(session, id=pk)
 
     # ________________________________UTILS____________________________________________________________
 
