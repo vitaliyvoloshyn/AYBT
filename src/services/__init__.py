@@ -155,6 +155,9 @@ class IService:
 
     def delete_rate(self, pk: int):
         with self.session() as session:
+            rv_list = self.rv_repository.get_obj(session, rate_id=pk)
+            for rv in rv_list:
+                self.rv_repository.delete(session, rv.id)
             self.rate_repository.delete(session, pk)
             session.commit()
 
