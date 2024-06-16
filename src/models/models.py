@@ -31,6 +31,7 @@ class Rate(Base):
     rate_type_id: Mapped[int] = mapped_column(ForeignKey('rate_types.id'))
     rate_type: Mapped['RateType'] = relationship(back_populates='rates')
     rate_values: Mapped[List['RateValue']] = relationship(back_populates='rate')
+    payments: Mapped[List['Payment']] = relationship(back_populates='rate')
 
 
 class RateValue(Base):
@@ -41,3 +42,13 @@ class RateValue(Base):
     end_date: Mapped[datetime] = mapped_column(nullable=True)
     rate_id: Mapped[int] = mapped_column(ForeignKey('rates.id'))
     rate: Mapped['Rate'] = relationship(back_populates='rate_values')
+
+
+class Payment(Base):
+    __tablename__ = 'payments'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    date: Mapped[datetime]
+    value: Mapped[int]
+    billing_date: Mapped[datetime]
+    rate_id: Mapped[int] = mapped_column(ForeignKey('rates.id'))
+    rate: Mapped['Rate'] = relationship(back_populates='payments')
