@@ -53,3 +53,18 @@ class RateTypeDTO(RateTypeAddDTO):
 
 class RateTypeRelDTO(RateTypeDTO):
     rates: List['RateDTO']
+
+
+class PaymentAddDTO(BaseModel):
+    date: date
+    value: int
+    billing_date: date
+    rate_id: int
+
+
+class PaymentDTO(PaymentAddDTO):
+    id: int
+
+
+class PaymentRelDTO(PaymentDTO):
+    rate: 'RateDTO'
