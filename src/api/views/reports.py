@@ -23,7 +23,6 @@ def get_wage_per_month(month: int, year: int, fact_wage: bool = True):
 
 @report_router.get('/payments_per_month')
 def get_fact_payments_per_month(month: int, year: int):
-    """dgdfgdfgd"""
     return report_service.get_fact_payments_per_month(month, year)
 
 

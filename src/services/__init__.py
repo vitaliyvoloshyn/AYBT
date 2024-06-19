@@ -174,7 +174,7 @@ class IService:
 
     def get_all_pmnt(self, **filter_by):
         with self.session() as session:
-            return self.payment_repository.get_all(session, **filter_by)
+            return self.payment_repository.get_all(session, with_relation=True, **filter_by)
 
     def get_pmnt(self, **filter_by) -> List[BaseModel]:
         with self.session() as session:
@@ -241,11 +241,31 @@ class IService:
         return {'total': end_sum,
                 'rates': res}
 
-    def get_fact_payments_per_month(self, month: int, year: int)-> dict:
-        """Повертає фактичний дохід за місяць по кожній категорії"""
+    def get_fact_payments_per_month(self, month: int, year: int) -> dict:
+        """Повертає всі виплати за вказаний місяць по кожній категорії"""
+        res = []
+        total = 0
         payments = self.get_all_pmnt()
+        start_date = date(year, month, 1)
+        end_date = self._get_end_date_of_month(month, year)
+        for payment in payments:
+            if start_date <= payment.date <= end_date:
+                res.append({'rate': payment.rate.name, 'value': payment.value})
+                total += payment.value
+        return {'total': total, 'rates': res}
 
-
+    def get_fact_payments_per_month_billing(self, month: int, year: int) -> dict:
+        """Повертає всі виплати за вказаний місяць по кожній категорії. Виплати фільтруються по billing date"""
+        res = []
+        total = 0
+        payments = self.get_all_pmnt()
+        start_date = date(year, month, 1)
+        end_date = self._get_end_date_of_month(month, year)
+        for payment in payments:
+            if start_date <= payment.billing_date <= end_date:
+                res.append({'rate': payment.rate.name, 'value': payment.value})
+                total += payment.value
+        return {'total': total, 'rates': res}
 
     def define_daily_rate(self, rates: Sequence[BaseModel], month: int, year: int) -> list:
         """Визначає розмір денної ставки для розрахункового місяця"""

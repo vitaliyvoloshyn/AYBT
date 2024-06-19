@@ -8,7 +8,8 @@ from sqlalchemy.orm import sessionmaker, Session
 from src.db.database import db_session
 from src.models.models import WorkDay, Base, Rate, RateType, RateValue, Payment
 from src.repositories import AbstractRepository
-from src.schemas.schemas import WorkDayDTO, RateDTO, RateTypeDTO, RateValueDTO, RateRelDTO, PaymentDTO, PaymentAddDTO
+from src.schemas.schemas import WorkDayDTO, RateDTO, RateTypeDTO, RateValueDTO, RateRelDTO, PaymentDTO, PaymentAddDTO, \
+    PaymentRelDTO
 
 
 class SQLAlchemyRepository(AbstractRepository):
@@ -81,4 +82,4 @@ class RateValueRepository(SQLAlchemyRepository):
 class PaymentRepository(SQLAlchemyRepository):
     model = Payment
     dto = PaymentDTO
-    rel_dto = PaymentAddDTO
+    rel_dto = PaymentRelDTO
