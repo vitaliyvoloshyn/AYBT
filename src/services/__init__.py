@@ -218,11 +218,13 @@ class IService:
         dates['days_count'] = len(days)
         return dates
 
-    def get_wage_per_month(self, month: int, year: int):
-        """Повертає повну суму заробітньої плати за рахрахунковий місяць"""
+    def get_wage_per_month(self, month: int, year: int, fact_wage: bool = True):
+        """Повертає суму заробітньої плати за разрахунковий місяць за фактично відпрацьовані дні"""
         res = []
         sum_ = 0
-        dates: dict = self.get_plan_wd_per_month(month, year)
+        dates: dict = self.get_fact_wd_per_month(month, year)
+        if not fact_wage:
+            dates: dict = self.get_plan_wd_per_month(month, year)
         rates = self.get_all_rate(with_relation=True)
         daily_rate = self.define_daily_rate(rates, month, year)
         month_rate = self.define_month_rate(rates, month, year)
