@@ -241,6 +241,12 @@ class IService:
         return {'total': end_sum,
                 'rates': res}
 
+    def get_fact_payments_per_month(self, month: int, year: int)-> dict:
+        """Повертає фактичний дохід за місяць по кожній категорії"""
+        payments = self.get_all_pmnt()
+
+
+
     def define_daily_rate(self, rates: Sequence[BaseModel], month: int, year: int) -> list:
         """Визначає розмір денної ставки для розрахункового місяця"""
         res = []
