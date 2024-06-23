@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from src.db.database import db_session
 from src.repositories.SQLRepository import SQLAlchemyRepository, WorDayRepository, RateRepository, RateValueRepository, \
     RateTypeRepository, PaymentRepository
-from src.schemas.schemas import RateDTO, ReportDiffActualPlan, WagePerMonth, RateRelDTO, Wage
+from src.schemas.schemas import RateDTO, ReportDiffActualPlan, WagePerMonth, RateRelDTO, Wage, PaymentReportDTO
 
 
 class IService:
@@ -249,39 +249,28 @@ class IService:
             out.append(Wage(rate=rate, billing_date=date(year, month, 1), value=value))
         return out
 
-    def get_fact_payments_per_month(self, month: int, year: int) -> dict:
-        """Повертає всі виплати за вказаний місяць по кожній категорії"""
+    def get_fact_payments_per_month(self, month: int, year: int, billing: bool) -> PaymentReportDTO:
+        """Повертає всі розрахункові виплати за вказаний місяць по кожній категорії"""
         payments_ = []
         total = 0
         payments = self.get_all_pmnt()
         start_date = date(year, month, 1)
         end_date = self._get_end_date_of_month(month, year)
         for payment in payments:
-            if start_date <= payment.date <= end_date:
+            check_date = payment.date
+            if billing:
+                check_date = payment.billing_date
+            if start_date <= check_date <= end_date:
                 payments_.append(payment)
                 total += payment.value
-        pprint(payments_)
-        return {'total': total, 'payments': payments_}
-
-    def get_fact_payments_per_month_billing(self, month: int, year: int) -> dict:
-        """Повертає всі виплати за вказаний місяць по кожній категорії. Виплати фільтруються по billing date"""
-        payments_ = []
-        total = 0
-        payments = self.get_all_pmnt()
-        start_date = date(year, month, 1)
-        end_date = self._get_end_date_of_month(month, year)
-        for payment in payments:
-            if start_date <= payment.billing_date <= end_date:
-                payments_.append(payment)
-                total += payment.value
-        return {'total': total, 'rates': payments_}
+        return PaymentReportDTO(total=total, payments=payments_)
 
     def summary_report_actual_planned(self, month: int, year: int) -> dict:
         """Порівнює фактичні і планові виплати"""
         res = []
         payment = {}
-        payments = self.get_fact_payments_per_month_billing(month, year)['rates']  # те, що вже отримав
-        wage = self.get_wage_per_month(month, year)['rates']  # те, що я маю отримати
+        payments = self.get_fact_payments_per_month(month, year, billing=True)  # те, що вже отримав
+        wage = self.get_wage_per_month(month, year)  # те, що я маю отримати
         ReportDiffActualPlan(rate=payments)
 
         for wage_rate in wage:

@@ -22,13 +22,8 @@ def get_wage_per_month(month: int, year: int, fact_wage: bool = True):
 
 
 @report_router.get('/payments_per_month')
-def get_fact_payments_per_month(month: int, year: int):
-    return report_service.get_fact_payments_per_month(month, year)
-
-
-@report_router.get('/payments_billing_date')
-def get_payments_per_month_billing(month: int, year: int):
-    return report_service.get_fact_payments_per_month_billing(month, year)
+def get_fact_payments_per_month(month: int, year: int, billing: bool):
+    return report_service.get_fact_payments_per_month(month, year, billing)
 
 
 @report_router.get('/summary_report')

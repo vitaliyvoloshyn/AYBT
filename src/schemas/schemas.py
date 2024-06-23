@@ -70,6 +70,11 @@ class PaymentRelDTO(PaymentDTO):
     rate: 'RateDTO'
 
 
+class PaymentReportDTO(BaseModel):
+    total: int
+    payments: List['PaymentRelDTO']
+
+
 class ReportDiffActualPlan(BaseModel):
     rate: 'RateDTO'
     diff: int
