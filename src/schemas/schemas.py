@@ -68,3 +68,20 @@ class PaymentDTO(PaymentAddDTO):
 
 class PaymentRelDTO(PaymentDTO):
     rate: 'RateDTO'
+
+
+class ReportDiffActualPlan(BaseModel):
+    rate: 'RateDTO'
+    diff: int
+    billing_date: date
+
+
+class Wage(BaseModel):
+    rate: 'RateRelDTO'
+    billing_date: date
+    value: int
+
+
+class WagePerMonth(BaseModel):
+    total: int
+    wages: List['Wage']
