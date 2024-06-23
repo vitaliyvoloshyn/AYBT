@@ -29,3 +29,8 @@ def get_fact_payments_per_month(month: int, year: int):
 @report_router.get('/payments_billing_date')
 def get_payments_per_month_billing(month: int, year: int):
     return report_service.get_fact_payments_per_month_billing(month, year)
+
+
+@report_router.get('/summary_report')
+def summary_report_of_actual_and_planned_payments(month: int, year: int):
+    return report_service.summary_report_actual_planned(month, year)

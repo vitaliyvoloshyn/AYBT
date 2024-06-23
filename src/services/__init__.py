@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from pprint import pprint
 from typing import List, Union, Sequence
 
 from pydantic import BaseModel
@@ -7,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from src.db.database import db_session
 from src.repositories.SQLRepository import SQLAlchemyRepository, WorDayRepository, RateRepository, RateValueRepository, \
     RateTypeRepository, PaymentRepository
+from src.schemas.schemas import RateDTO, ReportDiffActualPlan, WagePerMonth, RateRelDTO, Wage
 
 
 class IService:
@@ -221,104 +223,152 @@ class IService:
     def get_wage_per_month(self, month: int, year: int, fact_wage: bool = True):
         """Повертає суму заробітньої плати за разрахунковий місяць за фактично відпрацьовані дні"""
         res = []
+        wage = []
         sum_ = 0
         dates: dict = self.get_fact_wd_per_month(month, year)
         if not fact_wage:
             dates: dict = self.get_plan_wd_per_month(month, year)
         rates = self.get_all_rate(with_relation=True)
-        daily_rate = self.define_daily_rate(rates, month, year)
-        month_rate = self.define_month_rate(rates, month, year)
-        single_prim = self.define_single_prim(rates, month, year)
-        single_fine = self.define_single_fine(rates, month, year)
-        for rate_ in daily_rate:
-            res.append({'name': rate_['name'], 'value': rate_['value'] * dates.get('days_count')})
-        res.extend(month_rate)
-        res.extend(single_prim)
-        sum_ = sum(i['value'] for i in res)
-        res.extend(single_fine)
-        sum_fine = sum(i['value'] for i in single_fine)
-        end_sum = sum_ - sum_fine
-        return {'total': end_sum,
-                'rates': res}
+        daily_rate_wage = self._get_wage(self.define_daily_rate(rates, month, year), month, year, dates['days_count'])
+        month_rate_wage = self._get_wage(self.define_month_rate(rates, month, year), month, year, dates['days_count'])
+        single_prim_wage = self._get_wage(self.define_single_prim(rates, month, year), month, year, dates['days_count'])
+        single_fine_wage = self._get_wage(self.define_single_fine(rates, month, year), month, year, dates['days_count'])
+        wages = daily_rate_wage + month_rate_wage + single_fine_wage + single_prim_wage
+
+        total = sum([i.value for i in wages])
+        return WagePerMonth(total=total, wages=wages)
+
+    def _get_wage(self, rates: List[RateRelDTO], month: int, year: int, days: int) -> List[Wage]:
+        """Повертає заробітню плату за вибраний місяць"""
+        out = []
+        value = 0
+        for rate in rates:
+            value = rate.rate_values[0].value
+            if rate.rate_type_id == 1:
+                value *= days
+            out.append(Wage(rate=rate, billing_date=date(year, month, 1), value=value))
+        return out
 
     def get_fact_payments_per_month(self, month: int, year: int) -> dict:
         """Повертає всі виплати за вказаний місяць по кожній категорії"""
-        res = []
+        payments_ = []
         total = 0
         payments = self.get_all_pmnt()
         start_date = date(year, month, 1)
         end_date = self._get_end_date_of_month(month, year)
         for payment in payments:
             if start_date <= payment.date <= end_date:
-                res.append({'rate': payment.rate.name, 'value': payment.value})
+                payments_.append(payment)
                 total += payment.value
-        return {'total': total, 'rates': res}
+        pprint(payments_)
+        return {'total': total, 'payments': payments_}
 
     def get_fact_payments_per_month_billing(self, month: int, year: int) -> dict:
         """Повертає всі виплати за вказаний місяць по кожній категорії. Виплати фільтруються по billing date"""
-        res = []
+        payments_ = []
         total = 0
         payments = self.get_all_pmnt()
         start_date = date(year, month, 1)
         end_date = self._get_end_date_of_month(month, year)
         for payment in payments:
             if start_date <= payment.billing_date <= end_date:
-                res.append({'rate': payment.rate.name, 'value': payment.value})
+                payments_.append(payment)
                 total += payment.value
-        return {'total': total, 'rates': res}
+        return {'total': total, 'rates': payments_}
 
-    def define_daily_rate(self, rates: Sequence[BaseModel], month: int, year: int) -> list:
+    def summary_report_actual_planned(self, month: int, year: int) -> dict:
+        """Порівнює фактичні і планові виплати"""
+        res = []
+        payment = {}
+        payments = self.get_fact_payments_per_month_billing(month, year)['rates']  # те, що вже отримав
+        wage = self.get_wage_per_month(month, year)['rates']  # те, що я маю отримати
+        ReportDiffActualPlan(rate=payments)
+
+        for wage_rate in wage:
+            rate_name = wage_rate.get('name')
+            rate_value = 0  # сума значень по конкретній категорії (їх може бути кілька)
+            for fact_rate in payments:
+                if fact_rate.rate.name == rate_name:
+                    rate_value += fact_rate.get('value', 0)
+                diff = rate_value - wage_rate['value']
+            wage_rate.get('fg')
+            res.append({'name': wage_rate['name'], 'value': 0})
+        return {'difference': res}
+
+    def define_daily_rate(self, rates: Sequence[BaseModel], month: int, year: int) -> List[RateRelDTO]:
         """Визначає розмір денної ставки для розрахункового місяця"""
-        res = []
+        rate_ = []
 
         for rate in rates:
+            out = None
             if rate.rate_type.id == 1:
+                dto = rate.model_dump()
+                dto['rate_values'] = []
+                out = RateRelDTO(**dto)
                 for value in rate.rate_values:
                     if value.end_date:
                         if value.start_date <= date(year, month, 1) <= value.end_date:
-                            res.append({'name': str(rate.name), 'value': value.value})
+                            out.rate_values.append(value)
                     else:
                         if value.start_date <= date(year, month, 1):
-                            res.append({'name': str(rate.name), 'value': value.value})
+                            out.rate_values.append(value)
+                rate_.append(out)
 
-        return res
+        return rate_
 
-    def define_single_fine(self, rates: Sequence[BaseModel], month: int, year: int) -> list:
+    def define_single_fine(self, rates: Sequence[BaseModel], month: int, year: int) -> List[RateRelDTO]:
         """Визначає розмір разового вирахування для розрахункового місяця"""
-        res = []
+        rate_ = []
 
         for rate in rates:
+            out = None
             if rate.rate_type.id == 4:
+                dto = rate.model_dump()
+                dto['rate_values'] = []
+                out = RateRelDTO(**dto)
                 for value in rate.rate_values:
                     if value.start_date.month == month and value.start_date.year == year:
-                        res.append({'name': str(rate.name), 'value': value.value})
-        return res
+                        out.rate_values.append(value)
+                rate_.append(out)
 
-    def define_single_prim(self, rates: Sequence[BaseModel], month: int, year: int) -> list:
+        return rate_
+
+    def define_single_prim(self, rates: Sequence[BaseModel], month: int, year: int) -> List[RateRelDTO]:
         """Визначає розмір разового нарахування для розрахункового місяця"""
-        res = []
+        rate_ = []
 
         for rate in rates:
+            out = None
             if rate.rate_type.id == 3:
+                dto = rate.model_dump()
+                dto['rate_values'] = []
+                out = RateRelDTO(**dto)
                 for value in rate.rate_values:
                     if value.start_date.month == month and value.start_date.year == year:
-                        res.append({'name': str(rate.name), 'value': value.value})
-        return res
+                        out.rate_values.append(value)
+                rate_.append(out)
 
-    def define_month_rate(self, rates: Sequence[BaseModel], month: int, year: int) -> list:
+        return rate_
+
+    def define_month_rate(self, rates: Sequence[BaseModel], month: int, year: int) -> List[RateRelDTO]:
         """Визначає розмір місячної ставки"""
-        res = []
+        rate_ = []
+
         for rate in rates:
+            out = None
             if rate.rate_type.id == 2:
+                dto = rate.model_dump()
+                dto['rate_values'] = []
+                out = RateRelDTO(**dto)
                 for value in rate.rate_values:
                     if value.end_date:
                         if value.start_date <= date(year, month, 1) <= value.end_date:
-                            res.append({'name': str(rate.name), 'value': value.value})
+                            out.rate_values.append(value)
                     else:
                         if value.start_date <= date(year, month, 1):
-                            res.append({'name': str(rate.name), 'value': value.value})
-
-        return res
+                            out.rate_values.append(value)
+                rate_.append(out)
+        return rate_
 
     @staticmethod
     def _get_period(month: int, year: int) -> bool:
