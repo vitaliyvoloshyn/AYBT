@@ -1,0 +1,22 @@
+{%extends "base.html"%}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-xl">
+            <form action="#" method="post">
+                <label for="wd_date" class="form-label label">Вкажіть дату:</label>
+                <input class="form-control" type="date" id="wd_date" name="wd_date">
+
+                <label for="wd_desc" class="form-label label">Опишіть робочий день:</label>
+                <input class="form-control" type="text" id="wd_desc" name="wd_desc">
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-outline-primary">Зберегти</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+{%endblock%}

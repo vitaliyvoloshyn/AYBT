@@ -3,6 +3,7 @@ from typing import List
 from fastapi import APIRouter, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import UnmappedInstanceError
+from starlette.templating import Jinja2Templates
 
 from src.repositories.SQLRepository import WorDayRepository
 from src.schemas.schemas import WorkDayDTO, WorkDayAddDTO
@@ -11,6 +12,8 @@ from src.services.WorkDayService import WorkDayService
 
 wd_router = APIRouter(prefix='/workdays', tags=['WorkDay'])
 wd_service = IService()
+
+templates = Jinja2Templates(directory='templates')
 
 
 @wd_router.get('/', response_model=List[WorkDayDTO])
@@ -52,3 +55,5 @@ def update_wd(pk: int, wd: WorkDayAddDTO):
         return wd_service.update_wd(pk, wd.dict())
     except UnmappedInstanceError as e:
         return HTTPException(status_code=400, detail=e)
+
+

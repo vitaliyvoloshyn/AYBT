@@ -1,0 +1,87 @@
+.header {
+    background-color: #0dcaf0;
+    font-size: 1.6em;
+    padding: 3%;
+    margin-bottom: 2%;
+    /*display: flex;*/
+}
+
+/*.header-text{*/
+/*    position: relative;*/
+/*    display: flex;*/
+/*}*/
+
+.dept {
+    margin-top: 5%;
+    padding: 5px 0;
+    border: 1px solid black;
+    /*width: 95%;*/
+    /*height: 80%;*/
+    align-content: center;
+}
+
+.dept-text {
+    font-size: 22px;
+    /*margin: 15% 0 0 0;*/
+}
+
+.dept-sum {
+    font-size: 36px;
+    color: red;
+}
+
+.dept-price {
+    font-size: 36px;
+    color: darkgreen;
+}
+
+.dept-currency {
+    font-size: 18px;
+}
+
+
+.menu {
+    list-style-type: none;
+    background-color: coral;
+    font-size: 18px;
+    padding: 15px 9px;
+    line-height: 2;
+}
+
+.ref-menu {
+    text-decoration: none;
+    /*padding: 1px 3px; !*Отступы внутри ссылки*!*/
+    color: white; /*Цвет ссылки*/
+}
+
+a {
+    -webkit-transition: all linear 0.3s; /*Устанавливаем плавный переход при наведении курсора мыши*/
+    -moz-transition: all linear 0.3s;
+    -ms-transition: all linear 0.3s;
+    -o-transition: all linear 0.3s;
+    transition: all linear 0.3s;
+}
+.operator_name{
+    /*margin-bottom: 1em;*/
+    color: #4f5050;
+    font-size: 50%;
+}
+.btn-pay{
+    width: 100%;
+    margin: 1em 0;
+}
+.btn-menu{
+    color: green;
+}
+.btn-safe{
+    margin-top: 1em;
+}
+.label{
+    margin: 10px 0 5px;
+}
+.icon{
+    width: 1em;
+}
+.navi{
+    margin-bottom: 10px;
+}

@@ -58,7 +58,7 @@ class WorDayRepository(SQLAlchemyRepository):
     dto = WorkDayDTO
 
     def get_all_wd_per_month_(self, session: Session, begin: date, end: date) -> List[BaseModel]:
-        query = select(self.model).filter(and_(self.model.date <= end, self.model.date >= begin))
+        query = select(self.model).filter(and_(self.model.date < end, self.model.date >= begin))
         res = session.execute(query).scalars().all()
         return self.model_validate(res)
 

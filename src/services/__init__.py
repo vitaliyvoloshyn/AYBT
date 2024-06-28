@@ -2,13 +2,15 @@ from datetime import date, timedelta
 from pprint import pprint
 from typing import List, Union, Sequence
 
+from dateutil.relativedelta import relativedelta
 from pydantic import BaseModel
 from sqlalchemy.orm import sessionmaker
 
 from src.db.database import db_session
 from src.repositories.SQLRepository import SQLAlchemyRepository, WorDayRepository, RateRepository, RateValueRepository, \
     RateTypeRepository, PaymentRepository
-from src.schemas.schemas import RateDTO, ReportDiffActualPlan, WagePerMonth, RateRelDTO, Wage, PaymentReportDTO
+from src.schemas.schemas import RateDTO, ReportDiffActualPlan, WagePerMonth, RateRelDTO, Wage, PaymentReportDTO, \
+    TotalDiff
 
 
 class IService:
@@ -199,7 +201,8 @@ class IService:
         """Повертає список фактично відпрацьованих днів за вказаний місяць"""
         dates = {'days_count': 0, 'days': []}
         begin = date(year, month, 1)
-        end = self._get_end_date_of_month(month, year)
+        # end = self._get_end_date_of_month(month, year)
+        end = date(year, month, 1) + relativedelta(months=1)
         with self.session() as session:
             days = self.wd_repository.get_all_wd_per_month_(session, begin, end)
         dates['days'] = days
@@ -265,24 +268,23 @@ class IService:
                 total += payment.value
         return PaymentReportDTO(total=total, payments=payments_)
 
-    def summary_report_actual_planned(self, month: int, year: int) -> dict:
+    def summary_report_actual_planned(self, month: int, year: int) -> TotalDiff:
         """Порівнює фактичні і планові виплати"""
         res = []
-        payment = {}
+        total_diff = 0
+        diff = 0
         payments = self.get_fact_payments_per_month(month, year, billing=True)  # те, що вже отримав
-        wage = self.get_wage_per_month(month, year)  # те, що я маю отримати
-        ReportDiffActualPlan(rate=payments)
+        wages = self.get_wage_per_month(month, year)  # те, що я маю отримати
 
-        for wage_rate in wage:
-            rate_name = wage_rate.get('name')
-            rate_value = 0  # сума значень по конкретній категорії (їх може бути кілька)
-            for fact_rate in payments:
-                if fact_rate.rate.name == rate_name:
-                    rate_value += fact_rate.get('value', 0)
-                diff = rate_value - wage_rate['value']
-            wage_rate.get('fg')
-            res.append({'name': wage_rate['name'], 'value': 0})
-        return {'difference': res}
+        for wage in wages.wages:
+            payment_value = 0
+            for payment in payments.payments:
+                if payment.rate.name == wage.rate.name:
+                    payment_value += payment.value
+            diff = payment_value - wage.value
+            total_diff += diff
+            res.append(ReportDiffActualPlan(wage=wage, diff=diff))
+        return TotalDiff(total_diff=total_diff, diff_wages=res)
 
     def define_daily_rate(self, rates: Sequence[BaseModel], month: int, year: int) -> List[RateRelDTO]:
         """Визначає розмір денної ставки для розрахункового місяця"""
