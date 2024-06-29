@@ -14,6 +14,14 @@ class WorkDayDTO(WorkDayAddDTO):
     id: int
 
 
+class WDMonthViewDTO(BaseModel):
+    days_count: int
+    days: List[WorkDayDTO]
+    month_name: str
+    month_num: int
+    year: int
+
+
 class RateAddDTO(BaseModel):
     name: str
     rate_type_id: int

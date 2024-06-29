@@ -10,7 +10,7 @@ from src.db.database import db_session
 from src.repositories.SQLRepository import SQLAlchemyRepository, WorDayRepository, RateRepository, RateValueRepository, \
     RateTypeRepository, PaymentRepository
 from src.schemas.schemas import RateDTO, ReportDiffActualPlan, WagePerMonth, RateRelDTO, Wage, PaymentReportDTO, \
-    TotalDiff
+    TotalDiff, WDMonthViewDTO, WorkDayAddDTO, WorkDayDTO
 
 
 class IService:
@@ -197,45 +197,53 @@ class IService:
 
     # ________________________________UTILS____________________________________________________________
 
-    def get_fact_wd_per_month(self, month: int, year: int) -> dict:
+    def get_fact_wd_per_month(self, month: int, year: int) -> WDMonthViewDTO:
         """Повертає список фактично відпрацьованих днів за вказаний місяць"""
-        dates = {'days_count': 0, 'days': []}
         begin = date(year, month, 1)
-        # end = self._get_end_date_of_month(month, year)
         end = date(year, month, 1) + relativedelta(months=1)
         with self.session() as session:
             days = self.wd_repository.get_all_wd_per_month_(session, begin, end)
-        dates['days'] = days
-        dates['days_count'] = len(days)
-        return dates
+        return WDMonthViewDTO(
+            days_count=len(days),
+            days=days,
+            month_name=self._get_month_name(month),
+            month_num=month,
+            year=year)
 
-    def get_plan_wd_per_month(self, month: int, year: int) -> dict:
+    def get_plan_wd_per_month(self, month: int, year: int) -> WDMonthViewDTO:
         """Повертає список планових робочих днів за вказаний місяць"""
-        dates = {'days_count': 0, 'days': []}
         days = []
         start_date = date(year, month, 1)
         end_date = self._get_end_date_of_month(month, year)
         while start_date <= end_date:
             if start_date.isoweekday() != 7:
-                days.append((start_date, self._get_weekday(start_date)))
+                days.append(WorkDayDTO(
+                    id=0,
+                    date=start_date,
+                    description='-',
+                    day_of_week=self._get_weekday(start_date)
+                ))
             start_date += timedelta(days=1)
-        dates['days'] = days
-        dates['days_count'] = len(days)
-        return dates
+        return WDMonthViewDTO(
+            days_count=len(days),
+            days=days,
+            month_name=self._get_month_name(month),
+            month_num=month,
+            year=year)
 
     def get_wage_per_month(self, month: int, year: int, fact_wage: bool = True):
         """Повертає суму заробітньої плати за разрахунковий місяць за фактично відпрацьовані дні"""
         res = []
         wage = []
         sum_ = 0
-        dates: dict = self.get_fact_wd_per_month(month, year)
+        dates: WDMonthViewDTO = self.get_fact_wd_per_month(month, year)
         if not fact_wage:
-            dates: dict = self.get_plan_wd_per_month(month, year)
+            dates: WDMonthViewDTO = self.get_plan_wd_per_month(month, year)
         rates = self.get_all_rate(with_relation=True)
-        daily_rate_wage = self._get_wage(self.define_daily_rate(rates, month, year), month, year, dates['days_count'])
-        month_rate_wage = self._get_wage(self.define_month_rate(rates, month, year), month, year, dates['days_count'])
-        single_prim_wage = self._get_wage(self.define_single_prim(rates, month, year), month, year, dates['days_count'])
-        single_fine_wage = self._get_wage(self.define_single_fine(rates, month, year), month, year, dates['days_count'])
+        daily_rate_wage = self._get_wage(self.define_daily_rate(rates, month, year), month, year, dates.days_count)
+        month_rate_wage = self._get_wage(self.define_month_rate(rates, month, year), month, year, dates.days_count)
+        single_prim_wage = self._get_wage(self.define_single_prim(rates, month, year), month, year, dates.days_count)
+        single_fine_wage = self._get_wage(self.define_single_fine(rates, month, year), month, year, dates.days_count)
         wages = daily_rate_wage + month_rate_wage + single_fine_wage + single_prim_wage
 
         total = sum([i.value for i in wages])
@@ -389,3 +397,22 @@ class IService:
         while cur_date.month == month:
             cur_date += timedelta(days=1)
         return cur_date - timedelta(days=1)
+
+    @staticmethod
+    def _get_month_name(month_num: int) -> str:
+        """Повертає назву місяця"""
+        months = {
+            1: "Січень",
+            2: "Лютий",
+            3: "Березень",
+            4: "Квітень",
+            5: "Травень",
+            6: "Червень",
+            7: "Липень",
+            8: "Серпень",
+            9: "Вересень",
+            10: "Жовтень",
+            11: "Листопад",
+            12: "Грудень",
+        }
+        return months.get(month_num)

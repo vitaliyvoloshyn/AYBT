@@ -1,8 +1,11 @@
 {% extends "base.html"%}
 {% block content %}
-<div class="row">
+<div class="row" style="margin-bottom: 1em;">
     <div class="col">
         <strong>{{wd.days_count}} днів</strong>
+    </div>
+    <div class="col">
+        <strong>{{wd.month_name}} {{wd.year}}</strong>
     </div>
 </div>
 
