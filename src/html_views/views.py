@@ -28,13 +28,11 @@ def main_page(request: Request):
 @html_router.get('/add_wd')
 def add_wd_form(request: Request):
     return template.TemplateResponse(request,
-                                     name='add_wd.html',
-                                     )
+                                     name='add_wd.html')
 
 
 @html_router.post('/add_wd')
 def add_wd(wd_date: date = Form(), wd_desc: str = Form()):
-    print(wd_date, wd_desc)
     dto = WorkDayAddDTO(date=wd_date, description=wd_desc, day_of_week='')
     try:
         service.add_wd(dto)
@@ -42,3 +40,15 @@ def add_wd(wd_date: date = Form(), wd_desc: str = Form()):
         return {'detail': e}
 
     return RedirectResponse('/', status_code=status.HTTP_303_SEE_OTHER)
+
+
+@html_router.get('/wd')
+def get_month_wd(request: Request, month: int, year: int):
+    workdays = service.get_fact_wd_per_month(month, year)
+    return template.TemplateResponse(name='view_wd.html',
+                                     context={
+                                         'request': request,
+                                         'months': service.month_for_view_wd(month, year),
+                                         'wd': workdays,
+                                     }
+                                     )

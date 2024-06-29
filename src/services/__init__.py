@@ -10,7 +10,7 @@ from src.db.database import db_session
 from src.repositories.SQLRepository import SQLAlchemyRepository, WorDayRepository, RateRepository, RateValueRepository, \
     RateTypeRepository, PaymentRepository
 from src.schemas.schemas import RateDTO, ReportDiffActualPlan, WagePerMonth, RateRelDTO, Wage, PaymentReportDTO, \
-    TotalDiff, WDMonthViewDTO, WorkDayAddDTO, WorkDayDTO
+    TotalDiff, WDMonthViewDTO, WorkDayAddDTO, WorkDayDTO, MonthsDTO
 
 
 class IService:
@@ -19,6 +19,20 @@ class IService:
     rv_repository: SQLAlchemyRepository = RateValueRepository()
     rt_repository: SQLAlchemyRepository = RateTypeRepository()
     payment_repository: SQLAlchemyRepository = PaymentRepository()
+    months = {
+        1: "Січень",
+        2: "Лютий",
+        3: "Березень",
+        4: "Квітень",
+        5: "Травень",
+        6: "Червень",
+        7: "Липень",
+        8: "Серпень",
+        9: "Вересень",
+        10: "Жовтень",
+        11: "Листопад",
+        12: "Грудень",
+    }
 
     def __init__(self, session: sessionmaker = db_session):
         self.session = session
@@ -398,21 +412,39 @@ class IService:
             cur_date += timedelta(days=1)
         return cur_date - timedelta(days=1)
 
-    @staticmethod
-    def _get_month_name(month_num: int) -> str:
+    def _get_month_name(self, month_num: int) -> str:
         """Повертає назву місяця"""
-        months = {
-            1: "Січень",
-            2: "Лютий",
-            3: "Березень",
-            4: "Квітень",
-            5: "Травень",
-            6: "Червень",
-            7: "Липень",
-            8: "Серпень",
-            9: "Вересень",
-            10: "Жовтень",
-            11: "Листопад",
-            12: "Грудень",
-        }
-        return months.get(month_num)
+        return self.months.get(month_num)
+
+    def get_months(self) -> list[MonthsDTO]:
+        """Повертає список місяців """
+        lst = []
+        for key, value in self.months.items():
+            lst.append(MonthsDTO(num=key, name=value))
+        return lst
+
+    def month_for_view_wd(self, month: int, year: int) -> list[MonthsDTO]:
+        """Повертає список місяців для view_wd +/- 5 місяців вперед/назад"""
+        lst = []
+        start = date(year, month, 1)
+        for i in range(5, 0, -1):
+            lst.append(MonthsDTO(
+                name=self.months.get((start - relativedelta(months=i)).month),
+                num=(start - relativedelta(months=i)).month,
+                year=(start - relativedelta(months=i)).year
+            )
+            )
+        for i in range(7):
+            lst.append(MonthsDTO(
+                name=self.months.get((start + relativedelta(months=i)).month),
+                num=(start + relativedelta(months=i)).month,
+                year=(start + relativedelta(months=i)).year
+            )
+            )
+
+        return lst
+
+
+if __name__ == '__main__':
+    a = IService().month_for_view_wd(1)
+    print(a)

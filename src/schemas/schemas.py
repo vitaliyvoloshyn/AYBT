@@ -102,3 +102,9 @@ class Wage(BaseModel):
 class WagePerMonth(BaseModel):
     total: int
     wages: List['Wage']
+
+
+class MonthsDTO(BaseModel):
+    num: int
+    name: str
+    year: Optional[int] = None
