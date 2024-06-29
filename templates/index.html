@@ -1,32 +1,31 @@
 {% extends "base.html"%}
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-3">
-            <a type="button" class="btn btn-outline-primary" style="margin: 1em 1em 1em 0" href="/add_wd">Додати робочий день</a>
-        </div>
-        <div class="col">
-            <strong>{{wd.days_count}} днів</strong>
-        </div>
+<div class="row">
+    <div class="col-3">
+        <a type="button" class="btn btn-outline-primary" style="margin: 1em 1em 1em 0" href="/add_wd">Додати робочий
+            день</a>
     </div>
+    <div class="col">
+        <strong>{{wd.days_count}} днів</strong>
+    </div>
+</div>
 
-    <div class="row">
-        <div class="col-xl">
-            <table class="table table-sm table-bordered text-center align-middle">
-                <tr class="table-primary">
-                    <th class="col-1">Дата</th>
-                    <th class="col-1">День тижня</th>
-                    <th class="col">Опис робочого дня</th>
-                </tr>
-                {%for day in wd.days%}
-                    <tr>
-                        <td>{{day.date}}</td>
-                        <td>{{day.day_of_week}}</td>
-                        <td class="text-start">{{day.description}}</td>
-                    </tr>
-                {%endfor%}
-            </table>
-        </div>
+<div class="row">
+    <div class="col-xl">
+        <table class="table table-sm table-bordered text-center align-middle">
+            <tr class="table-primary">
+                <th class="col-1">Дата</th>
+                <th class="col-1">День тижня</th>
+                <th class="col">Опис робочого дня</th>
+            </tr>
+            {%for day in wd.days%}
+            <tr>
+                <td>{{day.date}}</td>
+                <td>{{day.day_of_week}}</td>
+                <td class="text-start">{{day.description}}</td>
+            </tr>
+            {%endfor%}
+        </table>
     </div>
 </div>
 {%endblock%}
