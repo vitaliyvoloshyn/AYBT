@@ -1,0 +1,47 @@
+{%extends "base.html"%}
+
+{% block content %}
+<div class="row" style="margin-bottom: 1em;">
+    <div class="row">
+        <h4>{{wd.report_name}}</h4>
+    </div>
+
+    <div class="row">
+        {%for month in months%}
+        <div class="col col-sm-1">
+            <a style="margin: 0;" type="button"
+               class="btn btn-outline-primary {%if month.name == wd.month_name and month.year == wd.year%}active{%endif%}"
+            href="/wd?month={{month.num}}&year={{month.year}}&type=plan">{{month.name}}<br>{{month.year}}
+            </a>
+        </div>
+        {%endfor%}
+    </div>
+</div>
+<div class="row" style="margin-bottom: 1em;">
+    <div class="col">
+        <strong>{{wd.days_count}} днів</strong>
+    </div>
+    <div class="col">
+        <strong>{{wd.month_name}} {{wd.year}}</strong>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl">
+        <table class="table table-sm table-bordered text-center align-middle">
+            <tr class="table-primary">
+                <th class="col-1">Дата</th>
+                <th class="col-1">День тижня</th>
+                <th class="col">Опис робочого дня</th>
+            </tr>
+            {%for day in wd.days%}
+            <tr>
+                <td>{{day.date}}</td>
+                <td>{{day.day_of_week}}</td>
+                <td class="text-start">{{day.description}}</td>
+            </tr>
+            {%endfor%}
+        </table>
+    </div>
+</div>
+{%endblock%}

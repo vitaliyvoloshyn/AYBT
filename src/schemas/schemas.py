@@ -20,6 +20,7 @@ class WDMonthViewDTO(BaseModel):
     month_name: str
     month_num: int
     year: int
+    report_name: str
 
 
 class RateAddDTO(BaseModel):

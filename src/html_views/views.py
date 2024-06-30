@@ -1,6 +1,7 @@
 from datetime import date
+from typing import Annotated
 
-from fastapi import APIRouter, Form
+from fastapi import APIRouter, Form, HTTPException
 from sqlalchemy.exc import IntegrityError
 from starlette import status
 from starlette.requests import Request
@@ -43,9 +44,26 @@ def add_wd(wd_date: date = Form(), wd_desc: str = Form()):
 
 
 @html_router.get('/wd')
-def get_month_wd(request: Request, month: int, year: int):
-    workdays = service.get_fact_wd_per_month(month, year)
-    return template.TemplateResponse(name='view_wd.html',
+def get_month_wd_fact(request: Request,
+                      type: str,
+                      month: int = None,
+                      year: int = None,
+                      ):
+    month = date.today().month if not month else month
+    year = date.today().year if not year else year
+    workdays = []
+    try:
+        if type == 'fact':
+            workdays = service.get_fact_wd_per_month(month, year)
+            page = 'view_fact_wd.html'
+        elif type == 'plan':
+            workdays = service.get_plan_wd_per_month(month, year)
+            page = 'view_plan_wd.html'
+        else:
+            raise Exception("field type must be one of 'fact' or 'plan'")
+    except Exception as e:
+        return HTTPException(400, detail=str(e))
+    return template.TemplateResponse(name=page,
                                      context={
                                          'request': request,
                                          'months': service.month_for_view_wd(month, year),

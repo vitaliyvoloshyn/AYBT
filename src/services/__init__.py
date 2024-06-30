@@ -222,7 +222,8 @@ class IService:
             days=days,
             month_name=self._get_month_name(month),
             month_num=month,
-            year=year)
+            year=year,
+            report_name='Фактично відпрацьовані робочі дні')
 
     def get_plan_wd_per_month(self, month: int, year: int) -> WDMonthViewDTO:
         """Повертає список планових робочих днів за вказаний місяць"""
@@ -243,7 +244,8 @@ class IService:
             days=days,
             month_name=self._get_month_name(month),
             month_num=month,
-            year=year)
+            year=year,
+            report_name='Планові робочі дні')
 
     def get_wage_per_month(self, month: int, year: int, fact_wage: bool = True):
         """Повертає суму заробітньої плати за разрахунковий місяць за фактично відпрацьовані дні"""
