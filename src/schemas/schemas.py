@@ -1,7 +1,7 @@
 from datetime import date
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class WorkDayAddDTO(BaseModel):
@@ -66,7 +66,7 @@ class RateTypeRelDTO(RateTypeDTO):
 
 class PaymentAddDTO(BaseModel):
     date: date
-    value: int
+    value: int = Field(ge=1)
     billing_date: date
     rate_id: int
 

@@ -1,5 +1,4 @@
 from datetime import date
-from typing import Annotated
 
 from fastapi import APIRouter, Form, HTTPException
 from sqlalchemy.exc import IntegrityError
@@ -8,7 +7,7 @@ from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from starlette.templating import Jinja2Templates
 
-from schemas.schemas import WorkDayAddDTO
+from schemas.schemas import WorkDayAddDTO, PaymentAddDTO
 from services import IService
 
 html_router = APIRouter(tags=['HTML'])
@@ -18,7 +17,9 @@ service = IService()
 
 @html_router.get('/')
 def main_page(request: Request):
-    workdays = service.get_fact_wd_per_month(date.today().month, date.today().year)
+    month = date.today().month
+    year = date.today().year
+    workdays = service.get_fact_wd_per_month(month, year)
     return template.TemplateResponse(name='index.html',
                                      context={
                                          'request': request,
@@ -70,3 +71,35 @@ def get_month_wd_fact(request: Request,
                                          'wd': workdays,
                                      }
                                      )
+
+
+@html_router.get('/enter_payment')
+def enter_payment_form(request: Request):
+    rates = service.get_all_rate()
+    return template.TemplateResponse(name='enter_payment_form.html',
+                                     context={
+                                         'request': request,
+                                         'months': service.months,
+                                         'rates': rates,
+                                     }
+                                     )
+
+
+@html_router.post('/enter_payment')
+def add_payment(sum: int = Form(),
+                year: int = Form(),
+                month: int = Form(),
+                rec_date: date = Form(),
+                rate: int = Form(),
+                ):
+    try:
+        payment = PaymentAddDTO(
+            date=rec_date,
+            value=sum,
+            billing_date=date(year, month, 1),
+            rate_id=rate,
+        )
+        service.add_pmnt(payment)
+    except Exception as e:
+        return HTTPException(status_code=400, detail=str(e))
+    return RedirectResponse('/',  status_code=status.HTTP_303_SEE_OTHER)

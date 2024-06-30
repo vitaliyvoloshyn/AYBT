@@ -1,0 +1,48 @@
+{%extends "base.html"%}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <form action="#" method="post">
+            <div class="row">
+                <div class="col-3">
+                    <b>Оберіть розрахункові рік та місяць:</b>
+                    <label style="margin-top: 1em" for="year" class="form-label label">Рік:</label>
+                    <input class="form-control" type="text" id="year" name="year">
+                    {%for num, month in months.items()%}
+                        <div class="form-check" style="margin-top: 1em">
+                            <label for="wd_check" class="form-ckeck-label">{{month}}</label>
+                            <input class="form-check-input" type="radio" id="wd_check" name="month" value="{{num}}">
+                        </div>
+                    {%endfor%}
+                </div>
+
+                <div class="col-8">
+                    <label style="margin-top: 2em" for="rec_date" class="form-label label">Вкажіть дату отримання
+                        платежу:</label>
+                    <input class="form-control" type="date" id="rec_date" name="rec_date">
+
+                    <label style="margin-top: 1em" for="sum" class="form-label label">Вкажіть суму платежу:</label>
+                    <input class="form-control" type="number" id="sum" name="sum">
+
+                    <label style="margin-top: 1em" for="rate" class="form-label label">Вид платежу</label>
+                    <select class="form-select" id="rate" name="rate">
+                        <option selected value="">Виберіть зі списку вид платежу...</option>
+                        {%for rate in rates%}
+                            <option value="{{rate.id}}">{{rate.name}}</option>
+                        {%endfor%}
+                    </select>
+
+                </div>
+
+            </div>
+            <div class="d-grid gap-2">
+                <button style="margin-top: 2em" type="submit" class="btn btn-outline-primary">Зберегти</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    document.getElementById('rec_date').valueAsDate = new Date();
+</script>
+{%endblock%}
