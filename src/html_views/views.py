@@ -1,5 +1,7 @@
 from datetime import date
+from pprint import pprint
 
+from dateutil.relativedelta import relativedelta
 from fastapi import APIRouter, Form, HTTPException
 from sqlalchemy.exc import IntegrityError
 from starlette import status
@@ -7,7 +9,7 @@ from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from starlette.templating import Jinja2Templates
 
-from schemas.schemas import WorkDayAddDTO, PaymentAddDTO
+from schemas.schemas import WorkDayAddDTO, PaymentAddDTO, PaymentAnalysisDTO, AllPaymentAnalysisDTO
 from services import IService
 
 html_router = APIRouter(tags=['HTML'])
@@ -102,4 +104,37 @@ def add_payment(sum: int = Form(),
         service.add_pmnt(payment)
     except Exception as e:
         return HTTPException(status_code=400, detail=str(e))
-    return RedirectResponse('/',  status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse('/', status_code=status.HTTP_303_SEE_OTHER)
+
+
+@html_router.get('/payment_analysis')
+def payment_analysis(request: Request):
+    all_pa = None
+    res = []
+    start_date = date(2024, 1, 1)
+    cur_date = date(date.today().year, date.today().month, 1) - relativedelta(months=1)
+    while start_date <= cur_date:
+        wage = service.get_wage_per_month(cur_date.month, cur_date.year)
+        payment = service.get_fact_payments_per_month(cur_date.month, cur_date.year, billing=True)
+        mn = cur_date.month
+        name = service._get_month_name(cur_date.month)
+        y = cur_date.year
+        try:
+            res.append(PaymentAnalysisDTO(
+                month_num=mn,
+                month_name=name,
+                year=y,
+                wage=wage.model_dump(),
+                payment=payment.model_dump(),
+                diff=(payment - wage).model_dump(),
+            ))
+        except Exception as e:
+            print(e)
+        cur_date -= relativedelta(months=1)
+        all_pa = AllPaymentAnalysisDTO(total=service.total_payment_analysis(res), paDTO=res)
+    return template.TemplateResponse(name='payment_analysis.html',
+                                     context={
+                                         'request': request,
+                                         'matching': all_pa,
+                                     }
+                                     )

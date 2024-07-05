@@ -5,7 +5,7 @@ from src.api.views.reports import report_router
 from src.api.views.ratetype import rate_type_router
 from src.api.views.ratevalue import rate_value_router
 from src.api.views.wd import wd_router
-from src.api.views.paymnet import pmnt_router
+from src.api.views.payment import pmnt_router
 
 router = APIRouter()
 

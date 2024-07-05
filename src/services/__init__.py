@@ -10,7 +10,7 @@ from src.db.database import db_session
 from src.repositories.SQLRepository import SQLAlchemyRepository, WorDayRepository, RateRepository, RateValueRepository, \
     RateTypeRepository, PaymentRepository
 from src.schemas.schemas import RateDTO, ReportDiffActualPlan, WagePerMonth, RateRelDTO, Wage, PaymentReportDTO, \
-    TotalDiff, WDMonthViewDTO, WorkDayAddDTO, WorkDayDTO, MonthsDTO
+    TotalDiff, WDMonthViewDTO, WorkDayAddDTO, WorkDayDTO, MonthsDTO, PaymentDTO, PaymentRelDTO, PaymentAnalysisDTO
 
 
 class IService:
@@ -190,7 +190,7 @@ class IService:
             session.commit()
             return self.payment_repository.model_validate(model)
 
-    def get_all_pmnt(self, **filter_by):
+    def get_all_pmnt(self, **filter_by) -> Union[Sequence[PaymentDTO], Sequence[PaymentRelDTO]]:
         with self.session() as session:
             return self.payment_repository.get_all(session, with_relation=True, **filter_by)
 
@@ -247,7 +247,7 @@ class IService:
             year=year,
             report_name='Планові робочі дні')
 
-    def get_wage_per_month(self, month: int, year: int, fact_wage: bool = True):
+    def get_wage_per_month(self, month: int, year: int, fact_wage: bool = True) -> WagePerMonth:
         """Повертає суму заробітньої плати за разрахунковий місяць за фактично відпрацьовані дні"""
         res = []
         wage = []
@@ -445,6 +445,13 @@ class IService:
             )
 
         return lst
+
+
+    def total_payment_analysis(self, pa_dto_lst: List[PaymentAnalysisDTO]) -> int:
+        total = 0
+        for pa in pa_dto_lst:
+            total += pa.diff.total
+        return total
 
 
 if __name__ == '__main__':

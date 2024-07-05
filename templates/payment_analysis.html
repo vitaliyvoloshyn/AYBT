@@ -1,0 +1,50 @@
+{%extends "base.html"%}
+
+{% block content %}
+<div class="row">
+    <h4>Загальна недостача становить <span style="color: {%if matching.total >= 0%}#2FCD25{%else%}red{%endif%}"><b>{{matching.total}}</b></span></h4>
+</div>
+<div class="row">
+    <div class="col-xl">
+        <table class="table table-sm table-bordered text-center align-middle">
+            <tr class="table-primary">
+                <th class="col-2">Місяць</th>
+                <th class="col-3">Розрахункові нарахування</th>
+                <th class="col-4">Фактичні виплати</th>
+                <th class="col-3">Недостача</th>
+            </tr>
+            {%for match in matching.paDTO%}
+            <tr>
+                <td>{{match.month_name}} {{match.year}}</td>
+                <td><b>Всього: </b>{{match.wage.total}}<br>
+                    {%for wage in match.wage.wages%}
+                    {{wage.rate.name}} - {{wage.value}}<br>
+                    {%endfor%}
+                </td>
+                <td><b>Всього: </b><span style="color: #0000FF"><b>{{match.payment.total}}</b></span><br>
+                    {%for payment in match.payment.payments%}
+                    {{payment.date}} || {{payment.rate.name}} - {{payment.value}}<br>
+                    {%endfor%}
+                </td>
+                <td>{%if match.diff.total < 0%}
+                    <b>Недостача за місяць: </b>
+                    <span
+                    style="color: {%if match.diff.total >=
+                    0%}#2FCD25{%else%}red{%endif%}"><b>{{match.diff.total}}</b></span><br>
+                    {%for wage in match.diff.wages%}
+                    {%if wage.value < 0%}
+                    {{wage.rate.name}} -> <span style="color: {%if wage.value >= 0%}green{%else%}red{%endif%}"><b>{{wage.value}}</b></span><br>
+                    {%endif%}
+                    {%endfor%}
+                    {%endif%}
+                </td>
+            </tr>
+            {%endfor%}
+
+        </table>
+    </div>
+</div>
+
+{%endblock%}
+
+
