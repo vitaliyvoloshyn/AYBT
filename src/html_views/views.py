@@ -9,7 +9,7 @@ from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from starlette.templating import Jinja2Templates
 
-from schemas.schemas import WorkDayAddDTO, PaymentAddDTO, PaymentAnalysisDTO, AllPaymentAnalysisDTO
+from schemas.schemas import WorkDayAddDTO, PaymentAddDTO, PaymentAnalysisDTO, AllPaymentAnalysisDTO, RateValueAddDTO
 from services import IService
 
 html_router = APIRouter(tags=['HTML'])
@@ -131,10 +131,51 @@ def payment_analysis(request: Request):
         except Exception as e:
             print(e)
         cur_date -= relativedelta(months=1)
-        all_pa = AllPaymentAnalysisDTO(total=service.total_payment_analysis(res), paDTO=res)
+        all_pa = AllPaymentAnalysisDTO(total_diff=service.total_payment_analysis(res),
+                                       total_payment=service.analysis_total_payment(res),
+                                       paDTO=res)
     return template.TemplateResponse(name='payment_analysis.html',
                                      context={
                                          'request': request,
                                          'matching': all_pa,
                                      }
                                      )
+
+
+@html_router.get('/rates')
+def view_all_rates(request: Request):
+    rates = service.get_all_rates_for_html()
+    return template.TemplateResponse(name='rates.html',
+                                     context={
+                                         'request': request,
+                                         'rates': rates,
+                                     }
+                                     )
+
+
+@html_router.get('/rates/change/{pk:int}')
+def change_rv_form(request: Request, pk: int):
+    rv = []
+    rv_list = service.get_rv(with_relation=True, id=pk)
+    if rv_list:
+        rv = rv_list[0]
+    return template.TemplateResponse(name='change_rv_form.html',
+                                     context={
+                                         'request': request,
+                                         'rv': rv,
+                                     }
+                                     )
+
+
+@html_router.post('/rates/change/{pk:int}')
+def change_rv(pk: int,
+              new_value: int = Form(),
+              date: date = Form()):
+    try:
+        rv_dto = service.get_rv(id=pk)[0]
+        rv = RateValueAddDTO(value=new_value, start_date=date, rate_id=rv_dto.rate_id)
+
+        service.change_rv(rv)
+    except Exception as e:
+        return HTTPException(status_code=500, detail=str(e))
+    return RedirectResponse('/rates', status_code=status.HTTP_303_SEE_OTHER)

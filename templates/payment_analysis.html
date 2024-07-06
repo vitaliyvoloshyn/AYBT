@@ -2,7 +2,13 @@
 
 {% block content %}
 <div class="row">
-    <h4>Загальна недостача становить <span style="color: {%if matching.total >= 0%}#2FCD25{%else%}red{%endif%}"><b>{{matching.total}}</b></span></h4>
+    <div class="col-6">
+        <h4>Загальні виплати: <span style="color: {%if matching.total_payment >= 0%}#2FCD25{%else%}red{%endif%}"><b>{{matching.total_payment}}</b></span>
+        </h4>
+    </div>
+    <div class="col-6">
+        <h4 class="text-end">Загальна недостача становить <span style="color: {%if matching.total_diff >= 0%}#2FCD25{%else%}red{%endif%}"><b>{{matching.total_diff}}</b></span></h4>
+    </div>
 </div>
 <div class="row">
     <div class="col-xl">
@@ -18,7 +24,11 @@
                 <td>{{match.month_name}} {{match.year}}</td>
                 <td><b>Всього: </b>{{match.wage.total}}<br>
                     {%for wage in match.wage.wages%}
+                    {%if wage.rate.rate_type.name == 'Разове вирахування'%}
+                    <span style="color: red">{{wage.rate.name}} - {{wage.value}}</span><br>
+                    {%else%}
                     {{wage.rate.name}} - {{wage.value}}<br>
+                    {%endif%}
                     {%endfor%}
                 </td>
                 <td><b>Всього: </b><span style="color: #0000FF"><b>{{match.payment.total}}</b></span><br>
@@ -29,7 +39,7 @@
                 <td>{%if match.diff.total < 0%}
                     <b>Недостача за місяць: </b>
                     <span
-                    style="color: {%if match.diff.total >=
+                            style="color: {%if match.diff.total >=
                     0%}#2FCD25{%else%}red{%endif%}"><b>{{match.diff.total}}</b></span><br>
                     {%for wage in match.diff.wages%}
                     {%if wage.value < 0%}

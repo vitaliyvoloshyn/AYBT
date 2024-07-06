@@ -1,0 +1,29 @@
+{%extends "base.html"%}
+
+{% block content %}
+<div class="row">
+    <div class="col-xl">
+        {%for rate in rates.rates%}
+        <b>{{rate.name}}</b>
+        <table class="table table-sm table-bordered text-center align-middle">
+            <tr class="table-primary">
+                <th class="col-2">Розмір ставки</th>
+                <th class="col-3">Період дії</th>
+                <th class="col-4">Зміна ставки</th>
+            </tr>
+
+            {%for rv in rate.rate_values%}
+            <tr>
+                <td>{{rv.value}}</td>
+                <td>{{rv.start_date}} <--> {%if rv.end_date%}{{rv.end_date}}{%else%}...{%endif%}</td>
+                <td><a type="button" class="btn btn-outline-primary" href="/rates/change/{{rv.id}}">Змінити</a></td>
+            </tr>
+            {%endfor%}
+        </table>
+        {%endfor%}
+    </div>
+</div>
+
+
+
+{%endblock%}

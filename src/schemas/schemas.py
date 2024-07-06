@@ -86,17 +86,25 @@ class PaymentReportDTO(BaseModel):
     def __sub__(self, other: 'WagePerMonth') -> 'WagePerMonth':
         res = other.model_copy()
         total: int = 0
+        total_fine = 0
         for index in range(len(res.wages), 0, -1):
+            rate_type = res.wages[index - 1].rate.rate_type.name
             category_sum = 0
             for payment in self.payments:
                 if res.wages[index - 1].rate.name == payment.rate.name:
-                    category_sum += payment.value
+                    if rate_type != 'Разове вирахування':
+                        category_sum += payment.value
             res.wages[index - 1].value = category_sum - res.wages[index - 1].value
+
             total += res.wages[index - 1].value
             # видалення wage, в яких value дорівнює 0
             # if not res.wages[index - 1].value:
             #     res.wages.pop(index - 1)
-        res.total = total
+            # видалення wage, в яких rate_type = вирахування
+            if rate_type == 'Разове вирахування':
+                total_fine += res.wages[index - 1].value
+                res.wages.pop(index - 1)
+        res.total = total - total_fine
         return res
 
 
@@ -137,6 +145,10 @@ class PaymentAnalysisDTO(BaseModel):
 
 
 class AllPaymentAnalysisDTO(BaseModel):
-    total: int
+    total_diff: int
+    total_payment: int
     paDTO: List['PaymentAnalysisDTO']
 
+
+class AllRatesDTO(BaseModel):
+    rates: List['RateRelDTO']

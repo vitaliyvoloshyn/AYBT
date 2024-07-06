@@ -1,0 +1,26 @@
+{%extends "base.html"%}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <h3>Зміна значення по ставці - {{rv.rate.name}}</h3>
+        <h5>Поточне значення - {{rv.value}}</h5>
+    </div>
+    <div class="row">
+        <div class="col-xl">
+            <form action="#" method="post">
+                <label style="margin-top: 2em" for="new_value" class="form-label label">Вкажіть новий розмір ставки:</label>
+                <input class="form-control" type="number" id="new_value" name="new_value">
+
+                <label style="margin-top: 2em" for="date" class="form-label label">Вкажіть дату початку дії ставки:</label>
+                <input class="form-control" type="date" id="date" name="date">
+
+                <div class="d-grid gap-2">
+                    <button style="margin-top: 2em" type="submit" class="btn btn-outline-primary">Зберегти</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+{%endblock%}

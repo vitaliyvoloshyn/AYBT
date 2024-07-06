@@ -9,7 +9,7 @@ from src.db.database import db_session
 from src.models.models import WorkDay, Base, Rate, RateType, RateValue, Payment
 from src.repositories import AbstractRepository
 from src.schemas.schemas import WorkDayDTO, RateDTO, RateTypeDTO, RateValueDTO, RateRelDTO, PaymentDTO, PaymentAddDTO, \
-    PaymentRelDTO
+    PaymentRelDTO, RateValueRelDTO
 
 
 class SQLAlchemyRepository(AbstractRepository):
@@ -77,6 +77,7 @@ class RateTypeRepository(SQLAlchemyRepository):
 class RateValueRepository(SQLAlchemyRepository):
     model = RateValue
     dto = RateValueDTO
+    rel_dto = RateValueRelDTO
 
 
 class PaymentRepository(SQLAlchemyRepository):

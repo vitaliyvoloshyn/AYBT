@@ -10,7 +10,8 @@ from src.db.database import db_session
 from src.repositories.SQLRepository import SQLAlchemyRepository, WorDayRepository, RateRepository, RateValueRepository, \
     RateTypeRepository, PaymentRepository
 from src.schemas.schemas import RateDTO, ReportDiffActualPlan, WagePerMonth, RateRelDTO, Wage, PaymentReportDTO, \
-    TotalDiff, WDMonthViewDTO, WorkDayAddDTO, WorkDayDTO, MonthsDTO, PaymentDTO, PaymentRelDTO, PaymentAnalysisDTO
+    TotalDiff, WDMonthViewDTO, WorkDayAddDTO, WorkDayDTO, MonthsDTO, PaymentDTO, PaymentRelDTO, PaymentAnalysisDTO, \
+    AllRatesDTO, RateValueAddDTO
 
 
 class IService:
@@ -106,9 +107,9 @@ class IService:
         with self.session() as session:
             return self.rv_repository.get_all(session)
 
-    def get_rv(self, **filter_by) -> List[BaseModel]:
+    def get_rv(self, with_relation: bool = False, **filter_by) -> List[BaseModel]:
         with self.session() as session:
-            return self.rv_repository.get_obj(session, **filter_by)
+            return self.rv_repository.get_obj(session, with_relation, **filter_by)
 
     def delete_rv(self, pk: int):
         with self.session() as session:
@@ -133,7 +134,7 @@ class IService:
             session.commit()
             return self.rv_repository.get_obj(session, id=pk)
 
-    def change_rv(self, pk: int, dto: BaseModel):
+    def change_rv(self, dto: RateValueAddDTO):
         """Зміна ставки"""
         dto.__setattr__('start_date', date(dto.start_date.year, dto.start_date.month, 1))
         with self.session() as session:
@@ -260,9 +261,12 @@ class IService:
         month_rate_wage = self._get_wage(self.define_month_rate(rates, month, year), month, year, dates.days_count)
         single_prim_wage = self._get_wage(self.define_single_prim(rates, month, year), month, year, dates.days_count)
         single_fine_wage = self._get_wage(self.define_single_fine(rates, month, year), month, year, dates.days_count)
-        wages = daily_rate_wage + month_rate_wage + single_fine_wage + single_prim_wage
+        wages = daily_rate_wage + month_rate_wage + single_prim_wage + single_fine_wage
 
         total = sum([i.value for i in wages])
+        if single_fine_wage:
+            for fine in single_fine_wage:
+                total -= fine.value * 2
         return WagePerMonth(total=total, wages=wages)
 
     def _get_wage(self, rates: List[RateRelDTO], month: int, year: int, days: int) -> List[Wage]:
@@ -270,6 +274,8 @@ class IService:
         out = []
         value = 0
         for rate in rates:
+            if not rate.rate_values:
+                return out
             value = rate.rate_values[0].value
             if rate.rate_type_id == 1:
                 value *= days
@@ -446,12 +452,26 @@ class IService:
 
         return lst
 
-
-    def total_payment_analysis(self, pa_dto_lst: List[PaymentAnalysisDTO]) -> int:
+    @staticmethod
+    def total_payment_analysis(pa_dto_lst: List[PaymentAnalysisDTO]) -> int:
+        """Повертає повну недостачу"""
         total = 0
         for pa in pa_dto_lst:
             total += pa.diff.total
         return total
+
+    @staticmethod
+    def analysis_total_payment(pa_dto_lst: List[PaymentAnalysisDTO]) -> int:
+        """Повертає повну суму фактичних виплат"""
+        total = 0
+        for pa in pa_dto_lst:
+            total += pa.payment.total
+        return total
+
+    def get_all_rates_for_html(self) -> AllRatesDTO:
+        rates = []
+        rates_dto = self.get_all_rate(with_relation=True)
+        return AllRatesDTO(rates=rates_dto)
 
 
 if __name__ == '__main__':
