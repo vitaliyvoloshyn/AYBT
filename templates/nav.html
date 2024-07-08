@@ -1,25 +1,40 @@
 <div class="container-fluid" style="margin-bottom: 1em; padding: 0">
-    <div class="row sticky-top bg-white" >
+    <div class="row sticky-top bg-white">
         <div class="col">
             <ul class="nav border-bottom border-primary ">
+
                 <li class="nav-item">
                     <a class="nav-link" aria-current="page" href="/">Головна</a>
                 </li>
+
                 <li class="nav-item">
                     <a class="nav-link" href="/enter_payment">Внести надходження</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/wd?type=fact">Відпрацьовані дні</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/wd?type=plan">Планові робочі дні</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/payment_analysis">Аналіз надходжень</a>
-                </li>
+
                 <li class="nav-item">
                     <a class="nav-link" href="/rates">Ставки</a>
                 </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button"
+                       aria-expanded="false">Звіти</a>
+                    <ul class="dropdown-menu">
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="/wd?type=fact">Відпрацьовані дні</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="/wd?type=plan">Планові робочі дні</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="/payment_analysis">Аналіз надходжень</a>
+                        </li>
+
+                    </ul>
+                </li>
+
             </ul>
         </div>
         <div class="col-2">
