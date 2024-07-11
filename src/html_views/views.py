@@ -9,7 +9,8 @@ from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from starlette.templating import Jinja2Templates
 
-from schemas.schemas import WorkDayAddDTO, PaymentAddDTO, PaymentAnalysisDTO, AllPaymentAnalysisDTO, RateValueAddDTO
+from schemas.schemas import WorkDayAddDTO, PaymentAddDTO, PaymentAnalysisDTO, AllPaymentAnalysisDTO, RateValueAddDTO, \
+    RateAddDTO
 from services import IService
 
 html_router = APIRouter(tags=['HTML'])
@@ -176,6 +177,39 @@ def change_rv(pk: int,
         rv = RateValueAddDTO(value=new_value, start_date=date, rate_id=rv_dto.rate_id)
 
         service.change_rv(rv)
+    except Exception as e:
+        return HTTPException(status_code=500, detail=str(e))
+    return RedirectResponse('/rates', status_code=status.HTTP_303_SEE_OTHER)
+
+
+@html_router.get('/rates/add')
+def add_rate_form(request: Request):
+    rt = service.get_all_rt()
+    return template.TemplateResponse(name='add_rate_form.html',
+                                     context={
+                                         'request': request,
+                                         'rt_list': rt,
+                                     }
+                                     )
+
+
+@html_router.post('/rates/add')
+def add_rate_form(rate_name: str = Form(),
+                  new_value: int = Form(),
+                  date_start: date = Form(),
+                  rate_type: int = Form()
+                  ):
+    try:
+        service.add_rate_with_value(
+            RateAddDTO(
+                name=rate_name,
+                rate_type_id=rate_type
+            ),
+            RateValueAddDTO(
+                value=new_value,
+                start_date=date_start,
+                rate_id=0,
+            ))
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
     return RedirectResponse('/rates', status_code=status.HTTP_303_SEE_OTHER)

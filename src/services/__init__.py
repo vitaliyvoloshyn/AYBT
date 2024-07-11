@@ -6,12 +6,13 @@ from dateutil.relativedelta import relativedelta
 from pydantic import BaseModel
 from sqlalchemy.orm import sessionmaker
 
+from models.models import RateValue, Rate
 from src.db.database import db_session
 from src.repositories.SQLRepository import SQLAlchemyRepository, WorDayRepository, RateRepository, RateValueRepository, \
     RateTypeRepository, PaymentRepository
 from src.schemas.schemas import RateDTO, ReportDiffActualPlan, WagePerMonth, RateRelDTO, Wage, PaymentReportDTO, \
     TotalDiff, WDMonthViewDTO, WorkDayAddDTO, WorkDayDTO, MonthsDTO, PaymentDTO, PaymentRelDTO, PaymentAnalysisDTO, \
-    AllRatesDTO, RateValueAddDTO
+    AllRatesDTO, RateValueAddDTO, RateAddDTO
 
 
 class IService:
@@ -159,6 +160,16 @@ class IService:
             model = self.rate_repository.add_obj(session, dto)
             session.commit()
             return self.rate_repository.model_validate(model)
+
+    def add_rate_with_value(self, rate_dto: RateAddDTO, rv_dto: RateValueAddDTO) -> None:
+        with self.session() as session:
+            rv = RateValue(
+                value=rv_dto.value,
+                start_date=rv_dto.start_date,
+            )
+            rv.rate = Rate(**rate_dto.dict())
+            session.add(rv)
+            session.commit()
 
     def get_all_rate(self, with_relation: bool = False):
         with self.session() as session:

@@ -2,6 +2,9 @@
 
 {% block content %}
 <div class="row">
+    <a type="button" class="btn btn-outline-primary" href="/rates/add">Створити нову ставку</a>
+</div>
+<div class="row">
     <div class="col-xl">
         {%for rate in rates.rates%}
         <b>{{rate.name}}</b>
